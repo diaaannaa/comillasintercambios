@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comillas Intercambios - Tu próximo intercambio empieza aquí</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --comillas-yellow: #FFB81C;
+            --comillas-gray: #53565A;
+            --comillas-icai: #014593;
+            --comillas-icade: #A4123F;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --border-gray: #E0E0E0;
+            --text-dark: #1A1A1A;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* Navegación */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 20px var(--shadow);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--comillas-yellow);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            color: var(--comillas-gray);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--comillas-gray);
+            font-weight: 500;
+            font-size: 0.95rem;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--comillas-yellow);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--comillas-yellow);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--comillas-yellow);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            height: 85vh;
+            background: linear-gradient(135deg, rgba(255, 184, 28, 0.95) 0%, rgba(83, 86, 90, 0.9) 100%),
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%2353565A" width="1200" height="800"/><circle cx="200" cy="150" r="80" fill="%23FFB81C" opacity="0.1"/><circle cx="900" cy="600" r="120" fill="%23FFB81C" opacity="0.1"/><circle cx="1100" cy="200" r="60" fill="%23014593" opacity="0.15"/><circle cx="300" cy="700" r="90" fill="%23A4123F" opacity="0.1"/></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 184, 28, 0.2) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        .hero-content {
+            max-width: 900px;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero p {
+            font-size: 1.4rem;
+            color: var(--white);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--comillas-yellow);
+            color: var(--comillas-gray);
+            box-shadow: 0 8px 25px rgba(255, 184, 28, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: #FFC94D;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 184, 28, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--comillas-gray);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-gray);
+            transform: translateY(-3px);
+        }
+
+        /* Sections */
+        section {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--comillas-gray);
+            margin-bottom: 3rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            width: 80px;
+            height: 4px;
+            background: var(--comillas-yellow);
+            display: block;
+            margin: 1rem auto 0;
+            border-radius: 2px;
+        }
+
+        /* Mapa Interactivo */
+        #map-section {
+            background: var(--light-gray);
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px var(--shadow);
+        }
+
+        /* Destinos Top */
+        .destinos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .destino-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px var(--shadow);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .destino-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .destino-img {
+            height: 200px;
+            background: linear-gradient(135deg, var(--comillas-yellow) 0%, var(--comillas-icai) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .destino-img::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s;
+        }
+
+        .destino-card:hover .destino-img::before {
+            opacity: 0;
+        }
+
+        .destino-info {
+            padding: 1.5rem;
+        }
+
+        .destino-info h3 {
+            font-size: 1.5rem;
+            color: var(--comillas-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .destino-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            padding: 0.4rem 1rem;
+            background: var(--light-gray);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--comillas-gray);
+            font-weight: 500;
+        }
+
+        .stat-badge.yellow {
+            background: rgba(255, 184, 28, 0.15);
+            color: #D19600;
+        }
+
+        /* Experiencias */
+        #experiencias {
+            background: var(--light-gray);
+        }
+
+        .experiencias-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .filters {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 20px;
+            height: fit-content;
+            box-shadow: 0 8px 30px var(--shadow);
+            position: sticky;
+            top: 100px;
+        }
+
+        .filter-group {
+            margin-bottom: 2rem;
+        }
+
+        .filter-group h4 {
+            color: var(--comillas-gray);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--border-gray);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--comillas-yellow);
+        }
+
+        .experiencias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .experiencia-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px var(--shadow);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .experiencia-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .experiencia-img {
+            height: 220px;
+            background: linear-gradient(135deg, var(--comillas-icade) 0%, var(--comillas-icai) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--white);
+            position: relative;
+        }
+
+        .experiencia-content {
+            padding: 1.5rem;
+        }
+
+        .experiencia-content h3 {
+            font-size: 1.3rem;
+            color: var(--comillas-gray);
+            margin-bottom: 0.8rem;
+        }
+
+        .experiencia-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            padding: 0.3rem 0.8rem;
+            background: var(--light-gray);
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: var(--comillas-gray);
+            font-weight: 500;
+        }
+
+        .tag.budget {
+            background: rgba(255, 184, 28, 0.15);
+            color: #D19600;
+        }
+
+        /* Marketplace */
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .marketplace-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px var(--shadow);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .marketplace-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .favorite-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--white);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--shadow);
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .favorite-btn:hover {
+            transform: scale(1.1);
+            background: var(--comillas-yellow);
+        }
+
+        .marketplace-img {
+            height: 200px;
+            background: linear-gradient(135deg, var(--comillas-yellow) 0%, var(--comillas-gray) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .marketplace-content {
+            padding: 1.5rem;
+        }
+
+        .marketplace-content h3 {
+            font-size: 1.2rem;
+            color: var(--comillas-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .marketplace-content .price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--comillas-yellow);
+            margin: 0.5rem 0;
+        }
+
+        /* Red de Contactos */
+        .contactos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .contacto-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .contacto-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .contacto-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--comillas-yellow) 0%, var(--comillas-icai) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--white);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .contacto-info {
+            flex: 1;
+        }
+
+        .contacto-info h3 {
+            font-size: 1.4rem;
+            color: var(--comillas-gray);
+            margin-bottom: 0.3rem;
+        }
+
+        .contacto-info .destino {
+            color: var(--comillas-gray);
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status.disponible {
+            background: rgba(34, 197, 94, 0.15);
+            color: #059669;
+        }
+
+        .status.ocupado {
+            background: rgba(251, 191, 36, 0.15);
+            color: #D97706;
+        }
+
+        .status.no-disponible {
+            background: rgba(239, 68, 68, 0.15);
+            color: #DC2626;
+        }
+
+        .btn-contactar {
+            padding: 0.8rem 2rem;
+            background: var(--comillas-yellow);
+            color: var(--comillas-gray);
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-contactar:hover {
+            background: #FFC94D;
+            transform: scale(1.05);
+        }
+
+        /* Perfil */
+        .perfil-container {
+            max-width: 900px;
+            margin: 3rem auto;
+            background: var(--white);
+            border-radius: 30px;
+            box-shadow: 0 15px 60px var(--shadow);
+            overflow: hidden;
+        }
+
+        .perfil-header {
+            background: linear-gradient(135deg, var(--comillas-yellow) 0%, var(--comillas-gray) 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .perfil-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--white);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--comillas-yellow);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .perfil-header h2 {
+            color: var(--white);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .perfil-info-badges {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .info-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.6rem 1.5rem;
+            border-radius: 20px;
+            color: var(--white);
+            font-weight: 500;
+        }
+
+        .perfil-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-gray);
+            background: var(--light-gray);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--comillas-gray);
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-size: 1rem;
+        }
+
+        .tab:hover {
+            background: rgba(255, 184, 28, 0.1);
+        }
+
+        .tab.active {
+            color: var(--comillas-yellow);
+            border-bottom: 3px solid var(--comillas-yellow);
+        }
+
+        .perfil-content {
+            padding: 3rem 2rem;
+        }
+
+        /* Chat Bot */
+        .chat-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1001;
+        }
+
+        .chat-toggle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--comillas-yellow);
+            border: none;
+            box-shadow: 0 8px 30px rgba(255, 184, 28, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(255, 184, 28, 0.5);
+        }
+
+        .chat-window {
+            position: absolute;
+            bottom: 90px;
+            right: 0;
+            width: 400px;
+            height: 600px;
+            background: var(--white);
+            border-radius: 25px;
+            box-shadow: 0 15px 60px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .chat-window.open {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--comillas-yellow) 0%, var(--comillas-gray) 100%);
+            padding: 1.5rem;
+            color: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            font-size: 1.2rem;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .chat-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background: var(--light-gray);
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.8rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-bot {
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 15px 15px 15px 5px;
+            max-width: 75%;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .message-user {
+            background: var(--comillas-yellow);
+            padding: 1rem;
+            border-radius: 15px 15px 5px 15px;
+            max-width: 75%;
+            margin-left: auto;
+            color: var(--comillas-gray);
+        }
+
+        .chat-suggestions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0 1.5rem 1rem;
+            background: var(--light-gray);
+        }
+
+        .suggestion-btn {
+            padding: 0.8rem;
+            background: var(--white);
+            border: 2px solid var(--border-gray);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--comillas-gray);
+            text-align: left;
+        }
+
+        .suggestion-btn:hover {
+            border-color: var(--comillas-yellow);
+            background: rgba(255, 184, 28, 0.05);
+            transform: translateX(5px);
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            background: var(--white);
+            border-top: 2px solid var(--border-gray);
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid var(--border-gray);
+            border-radius: 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--comillas-yellow);
+        }
+
+        .chat-send {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--comillas-yellow);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .chat-send:hover {
+            transform: scale(1.1);
+            background: #FFC94D;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--comillas-gray);
+            color: var(--white);
+            padding: 3rem 2rem 1.5rem;
+            margin-top: 5rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: var(--comillas-yellow);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            text-decoration: none;
+            display: block;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--comillas-yellow);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .experiencias-container {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                position: static;
+            }
+
+            .chat-window {
+                width: calc(100vw - 2rem);
+                right: 1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">COMILLAS <span>Intercambios</span></a>
+            <ul class="nav-links">
+                <li><a href="#inicio" class="active">Inicio</a></li>
+                <li><a href="#experiencias">Experiencias</a></li>
+                <li><a href="#marketplace">Market</a></li>
+                <li><a href="#red">Red</a></li>
+                <li><a href="#perfil">Perfil</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <h1>Tu próximo intercambio empieza aquí</h1>
+            <p>Conecta con estudiantes que ya vivieron la experiencia. Encuentra tu destino perfecto.</p>
+            <div class="hero-buttons">
+                <a href="#experiencias" class="btn btn-primary">Buscar destino</a>
+                <a href="#" class="btn btn-secondary" onclick="openTestModal()">Hacer el test</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mapa Interactivo -->
+    <section id="map-section">
+        <h2 class="section-title">Explora los Destinos</h2>
+        <div id="map"></div>
+    </section>
+
+    <!-- Destinos Top -->
+    <section>
+        <h2 class="section-title">Destinos Más Populares</h2>
+        <div class="destinos-grid">
+            <div class="destino-card">
+                <div class="destino-img">🇫🇷</div>
+                <div class="destino-info">
+                    <h3>París</h3>
+                    <p>Universidad Sorbonne</p>
+                    <div class="destino-stats">
+                        <span class="stat-badge yellow">12 experiencias</span>
+                        <span class="stat-badge">€800/mes</span>
+                        <span class="stat-badge">ICADE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="destino-card">
+                <div class="destino-img">🇮🇹</div>
+                <div class="destino-info">
+                    <h3>Roma</h3>
+                    <p>Sapienza Università</p>
+                    <div class="destino-stats">
+                        <span class="stat-badge yellow">8 experiencias</span>
+                        <span class="stat-badge">€700/mes</span>
+                        <span class="stat-badge">ICAI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="destino-card">
+                <div class="destino-img">🇩🇪</div>
+                <div class="destino-info">
+                    <h3>Berlín</h3>
+                    <p>Humboldt Universität</p>
+                    <div class="destino-stats">
+                        <span class="stat-badge yellow">6 experiencias</span>
+                        <span class="stat-badge">€650/mes</span>
+                        <span class="stat-badge">ICADE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="destino-card">
+                <div class="destino-img">🇵🇹</div>
+                <div class="destino-info">
+                    <h3>Lisboa</h3>
+                    <p>Universidade de Lisboa</p>
+                    <div class="destino-stats">
+                        <span class="stat-badge yellow">10 experiencias</span>
+                        <span class="stat-badge">€500/mes</span>
+                        <span class="stat-badge">CIHS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experiencias -->
+    <section id="experiencias">
+        <h2 class="section-title">Últimas Experiencias</h2>
+        <div class="experiencias-container">
+            <div class="filters">
+                <div class="filter-group">
+                    <h4>Destino</h4>
+                    <select>
+                        <option>Todos los destinos</option>
+                        <option>París</option>
+                        <option>Roma</option>
+                        <option>Berlín</option>
+                        <option>Lisboa</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <h4>Presupuesto</h4>
+                    <select>
+                        <option>Cualquier presupuesto</option>
+                        <option>€0 - €500</option>
+                        <option>€500 - €700</option>
+                        <option>€700 - €1000</option>
+                        <option>€1000+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <h4>Facultad</h4>
+                    <select>
+                        <option>Todas las facultades</option>
+                        <option>ICAI</option>
+                        <option>ICADE</option>
+                        <option>CIHS</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <h4>Año</h4>
+                    <select>
+                        <option>Todos los años</option>
+                        <option>2024-2025</option>
+                        <option>2023-2024</option>
+                        <option>2022-2023</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="experiencias-grid">
+                <div class="experiencia-card">
+                    <div class="experiencia-img">🇫🇷</div>
+                    <div class="experiencia-content">
+                        <h3>Erasmus en París</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Una experiencia increíble en la Sorbonne. La ciudad es cara pero hay muchas opciones para estudiantes...
+                        </p>
+                        <div class="experiencia-tags">
+                            <span class="tag budget">€850/mes</span>
+                            <span class="tag">ICADE</span>
+                            <span class="tag">2023-2024</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experiencia-card">
+                    <div class="experiencia-img">🇮🇹</div>
+                    <div class="experiencia-content">
+                        <h3>Erasmus en Roma</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Roma es espectacular. La Sapienza tiene muy buen ambiente y la ciudad está llena de historia...
+                        </p>
+                        <div class="experiencia-tags">
+                            <span class="tag budget">€700/mes</span>
+                            <span class="tag">ICAI</span>
+                            <span class="tag">2024-2025</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experiencia-card">
+                    <div class="experiencia-img">🇩🇪</div>
+                    <div class="experiencia-content">
+                        <h3>Erasmus en Berlín</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Berlín es vibrante y multicultural. Perfecto para estudiantes de ingeniería...
+                        </p>
+                        <div class="experiencia-tags">
+                            <span class="tag budget">€650/mes</span>
+                            <span class="tag">ICADE</span>
+                            <span class="tag">2023-2024</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experiencia-card">
+                    <div class="experiencia-img">🇵🇹</div>
+                    <div class="experiencia-content">
+                        <h3>Erasmus en Lisboa</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Lisboa tiene un clima increíble y es muy asequible. La Universidad de Lisboa es excelente...
+                        </p>
+                        <div class="experiencia-tags">
+                            <span class="tag budget">€500/mes</span>
+                            <span class="tag">CIHS</span>
+                            <span class="tag">2024-2025</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experiencia-card">
+                    <div class="experiencia-img">🇬🇧</div>
+                    <div class="experiencia-content">
+                        <h3>Erasmus en Londres</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Londres es caro pero vale cada euro. King's College es una universidad de primer nivel...
+                        </p>
+                        <div class="experiencia-tags">
+                            <span class="tag budget">€1200/mes</span>
+                            <span class="tag">ICADE</span>
+                            <span class="tag">2023-2024</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="experiencia-card">
+                    <div class="experiencia-img">🇳🇱</div>
+                    <div class="experiencia-content">
+                        <h3>Erasmus en Ámsterdam</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                            Ámsterdam es perfecta para estudiantes. Todo el mundo habla inglés y hay mucha vida cultural...
+                        </p>
+                        <div class="experiencia-tags">
+                            <span class="tag budget">€900/mes</span>
+                            <span class="tag">ICAI</span>
+                            <span class="tag">2024-2025</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marketplace -->
+    <section id="marketplace">
+        <h2 class="section-title">Marketplace</h2>
+        <div class="marketplace-grid">
+            <div class="marketplace-card">
+                <button class="favorite-btn" onclick="toggleFavorite(this)">♡</button>
+                <div class="marketplace-img">🛋️</div>
+                <div class="marketplace-content">
+                    <h3>Sofá 2 plazas</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Buen estado, usado 6 meses. París.</p>
+                    <div class="price">€80</div>
+                    <div class="experiencia-tags">
+                        <span class="tag">Muebles</span>
+                        <span class="tag">París</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="marketplace-card">
+                <button class="favorite-btn" onclick="toggleFavorite(this)">♡</button>
+                <div class="marketplace-img">🍳</div>
+                <div class="marketplace-content">
+                    <h3>Set de cocina completo</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Ollas, sartenes y utensilios. Roma.</p>
+                    <div class="price">€35</div>
+                    <div class="experiencia-tags">
+                        <span class="tag">Cocina</span>
+                        <span class="tag">Roma</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="marketplace-card">
+                <button class="favorite-btn" onclick="toggleFavorite(this)">♡</button>
+                <div class="marketplace-img">🏠</div>
+                <div class="marketplace-content">
+                    <h3>Apartamento céntrico</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Estudio 30m², bien conectado. Berlín.</p>
+                    <div class="price">€550/mes</div>
+                    <div class="experiencia-tags">
+                        <span class="tag">Pisos</span>
+                        <span class="tag">Berlín</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="marketplace-card">
+                <button class="favorite-btn" onclick="toggleFavorite(this)">♡</button>
+                <div class="marketplace-img">📚</div>
+                <div class="marketplace-content">
+                    <h3>Libros de texto</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Varios libros de Derecho. Lisboa.</p>
+                    <div class="price">€25</div>
+                    <div class="experiencia-tags">
+                        <span class="tag">Libros</span>
+                        <span class="tag">Lisboa</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="marketplace-card">
+                <button class="favorite-btn" onclick="toggleFavorite(this)">♡</button>
+                <div class="marketplace-img">💡</div>
+                <div class="marketplace-content">
+                    <h3>Lámpara de escritorio</h3>
+                    <p style="color: #666; font-size: 0.9rem;">LED, ajustable. Como nueva. París.</p>
+                    <div class="price">€15</div>
+                    <div class="experiencia-tags">
+                        <span class="tag">Deco</span>
+                        <span class="tag">París</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="marketplace-card">
+                <button class="favorite-btn" onclick="toggleFavorite(this)">♡</button>
+                <div class="marketplace-img">🚲</div>
+                <div class="marketplace-content">
+                    <h3>Bicicleta urbana</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Perfecta para moverse. Ámsterdam.</p>
+                    <div class="price">€120</div>
+                    <div class="experiencia-tags">
+                        <span class="tag">Transporte</span>
+                        <span class="tag">Ámsterdam</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Red de Contactos -->
+    <section id="red">
+        <h2 class="section-title">Red de Contactos</h2>
+        <div class="contactos-list">
+            <div class="contacto-card">
+                <div class="contacto-avatar">MA</div>
+                <div class="contacto-info">
+                    <h3>María Álvarez</h3>
+                    <p class="destino">📍 Erasmus en París · 2023-2024</p>
+                    <span class="status disponible">🟢 Disponible</span>
+                </div>
+                <button class="btn-contactar" onclick="alert('Función de mensajería en desarrollo')">Solicitar contacto</button>
+            </div>
+
+            <div class="contacto-card">
+                <div class="contacto-avatar">JL</div>
+                <div class="contacto-info">
+                    <h3>Juan López</h3>
+                    <p class="destino">📍 Erasmus en Roma · 2024-2025</p>
+                    <span class="status disponible">🟢 Disponible</span>
+                </div>
+                <button class="btn-contactar" onclick="alert('Función de mensajería en desarrollo')">Solicitar contacto</button>
+            </div>
+
+            <div class="contacto-card">
+                <div class="contacto-avatar">CP</div>
+                <div class="contacto-info">
+                    <h3>Carmen Pérez</h3>
+                    <p class="destino">📍 Erasmus en Berlín · 2023-2024</p>
+                    <span class="status ocupado">🟡 Ocupado</span>
+                </div>
+                <button class="btn-contactar" onclick="alert('Función de mensajería en desarrollo')">Solicitar contacto</button>
+            </div>
+
+            <div class="contacto-card">
+                <div class="contacto-avatar">DM</div>
+                <div class="contacto-info">
+                    <h3>David Martínez</h3>
+                    <p class="destino">📍 Erasmus en Lisboa · 2024-2025</p>
+                    <span class="status disponible">🟢 Disponible</span>
+                </div>
+                <button class="btn-contactar" onclick="alert('Función de mensajería en desarrollo')">Solicitar contacto</button>
+            </div>
+
+            <div class="contacto-card">
+                <div class="contacto-avatar">LG</div>
+                <div class="contacto-info">
+                    <h3>Laura García</h3>
+                    <p class="destino">📍 Erasmus en Ámsterdam · 2023-2024</p>
+                    <span class="status no-disponible">🔴 No disponible</span>
+                </div>
+                <button class="btn-contactar" onclick="alert('Función de mensajería en desarrollo')">Solicitar contacto</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Perfil -->
+    <section id="perfil">
+        <h2 class="section-title">Mi Perfil</h2>
+        <div class="perfil-container">
+            <div class="perfil-header">
+                <div class="perfil-avatar">👤</div>
+                <h2>Ana Rodríguez</h2>
+                <div class="perfil-info-badges">
+                    <span class="info-badge">📍 París · 2023-2024</span>
+                    <span class="info-badge">🎓 ICADE · 3º</span>
+                    <span class="info-badge">⭐ 125 puntos</span>
+                    <span class="info-badge">🏅 Embajadora Silver</span>
+                </div>
+            </div>
+
+            <div class="perfil-tabs">
+                <button class="tab active" onclick="switchTab(0)">Mi Experiencia</button>
+                <button class="tab" onclick="switchTab(1)">Mis Publicaciones</button>
+                <button class="tab" onclick="switchTab(2)">Mensajes</button>
+                <button class="tab" onclick="switchTab(3)">Ajustes</button>
+            </div>
+
+            <div class="perfil-content">
+                <div class="tab-content active" id="tab-0">
+                    <h3 style="color: var(--comillas-gray); margin-bottom: 1rem;">Mi Experiencia en París</h3>
+                    <p style="line-height: 1.8; color: #666;">
+                        Mi intercambio en la Sorbonne fue una experiencia transformadora. Viví en el Quartier Latin, 
+                        un barrio estudiantil lleno de vida. El coste de vida fue más alto de lo esperado, pero encontré 
+                        formas de ahorrar. La universidad tiene un nivel académico excelente y conocí gente de todo el mundo.
+                    </p>
+                    <div style="margin-top: 2rem;">
+                        <h4 style="color: var(--comillas-gray); margin-bottom: 1rem;">Datos clave</h4>
+                        <div class="experiencia-tags">
+                            <span class="tag budget">€850/mes</span>
+                            <span class="tag">Alojamiento: €550/mes</span>
+                            <span class="tag">Transporte: €75/mes</span>
+                            <span class="tag">Comida: €225/mes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="tab-1" style="display: none;">
+                    <h3 style="color: var(--comillas-gray); margin-bottom: 1rem;">Mis Publicaciones en el Marketplace</h3>
+                    <p style="color: #666;">No tienes publicaciones activas en este momento.</p>
+                    <button class="btn btn-primary" style="margin-top: 1rem;">Publicar artículo</button>
+                </div>
+                <div class="tab-content" id="tab-2" style="display: none;">
+                    <h3 style="color: var(--comillas-gray); margin-bottom: 1rem;">Mensajes</h3>
+                    <p style="color: #666;">No tienes mensajes nuevos.</p>
+                </div>
+                <div class="tab-content" id="tab-3" style="display: none;">
+                    <h3 style="color: var(--comillas-gray); margin-bottom: 1rem;">Ajustes de la cuenta</h3>
+                    <p style="color: #666;">Aquí podrás configurar tu perfil, notificaciones y privacidad.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chat Bot -->
+    <div class="chat-widget">
+        <button class="chat-toggle" onclick="toggleChat()">💬</button>
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <h3>🤖 Asistente de Intercambios</h3>
+                <button class="chat-close" onclick="toggleChat()">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message">
+                    <div class="message-bot">
+                        ¡Hola! 👋 Soy tu asistente de intercambios. Puedo ayudarte a encontrar el destino perfecto 
+                        según tus preferencias. ¿En qué puedo ayudarte?
+                    </div>
+                </div>
+            </div>
+            <div class="chat-suggestions">
+                <button class="suggestion-btn" onclick="sendMessage('¿Cuál es el destino más económico?')">
+                    💰 ¿Cuál es el destino más económico?
+                </button>
+                <button class="suggestion-btn" onclick="sendMessage('¿Qué destinos son mejores para ICADE?')">
+                    🎓 ¿Qué destinos son mejores para ICADE?
+                </button>
+                <button class="suggestion-btn" onclick="sendMessage('¿Cómo es la vida en París?')">
+                    🗼 ¿Cómo es la vida en París?
+                </button>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" placeholder="Escribe tu pregunta..." id="chatInput" 
+                       onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="chat-send" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Comillas Intercambios</h4>
+                <p>Plataforma oficial de intercambios de la Universidad Pontificia Comillas.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces</h4>
+                <a href="#inicio">Inicio</a>
+                <a href="#experiencias">Experiencias</a>
+                <a href="#marketplace">Marketplace</a>
+                <a href="#red">Red de Contactos</a>
+            </div>
+            <div class="footer-section">
+                <h4>Ayuda</h4>
+                <a href="#">Preguntas Frecuentes</a>
+                <a href="#">Contacto</a>
+                <a href="#">Términos y Condiciones</a>
+                <a href="#">Política de Privacidad</a>
+            </div>
+            <div class="footer-section">
+                <h4>Universidad</h4>
+                <a href="https://www.comillas.edu" target="_blank">comillas.edu</a>
+                <a href="#">Oficina de Relaciones Internacionales</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2025 Universidad Pontificia Comillas. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Active nav link
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= (sectionTop - 100)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Mapa interactivo
+        const map = L.map('map').setView([48.8566, 2.3522], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Marcadores de destinos
+        const destinos = [
+            { coords: [48.8566, 2.3522], name: 'París', exp: 12, budget: '€800' },
+            { coords: [41.9028, 12.4964], name: 'Roma', exp: 8, budget: '€700' },
+            { coords: [52.5200, 13.4050], name: 'Berlín', exp: 6, budget: '€650' },
+            { coords: [38.7223, -9.1393], name: 'Lisboa', exp: 10, budget: '€500' },
+            { coords: [51.5074, -0.1278], name: 'Londres', exp: 5, budget: '€1200' },
+            { coords: [52.3676, 4.9041], name: 'Ámsterdam', exp: 7, budget: '€900' }
+        ];
+
+        destinos.forEach(destino => {
+            const marker = L.marker(destino.coords).addTo(map);
+            marker.bindPopup(`
+                <strong>${destino.name}</strong><br>
+                ${destino.exp} experiencias<br>
+                ${destino.budget}/mes
+            `);
+        });
+
+        // Chat Bot
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.toggle('open');
+        }
+
+        function sendMessage(text) {
+            const input = document.getElementById('chatInput');
+            const messagesContainer = document.getElementById('chatMessages');
+            const message = text || input.value.trim();
+            
+            if (!message) return;
+
+            // Mensaje del usuario
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message';
+            userMsg.innerHTML = `<div class="message-user">${message}</div>`;
+            messagesContainer.appendChild(userMsg);
+
+            // Limpiar input
+            input.value = '';
+
+            // Scroll al final
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Respuesta del bot (simulada)
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'chat-message';
+                
+                let response = '';
+                if (message.includes('económico')) {
+                    response = 'Los destinos más económicos son Lisboa (€500/mes) y Berlín (€650/mes). Ambos tienen buena calidad de vida y muchas opciones para estudiantes.';
+                } else if (message.includes('ICADE')) {
+                    response = 'Para estudiantes de ICADE, los destinos más populares son París (Sorbonne), Berlín (Humboldt) y Londres (King\'s College). Todos tienen programas excelentes en Derecho y Empresariales.';
+                } else if (message.includes('París')) {
+                    response = 'París es una ciudad increíble pero cara. El alojamiento promedio es de €550/mes. Te recomiendo vivir en el Quartier Latin o cerca de la universidad. Hay 12 experiencias registradas que puedes consultar.';
+                } else {
+                    response = 'Esa es una gran pregunta. Te recomiendo revisar las experiencias de otros estudiantes o usar los filtros para encontrar el destino que mejor se adapte a tus necesidades. ¿En qué más puedo ayudarte?';
+                }
+                
+                botMsg.innerHTML = `<div class="message-bot">${response}</div>`;
+                messagesContainer.appendChild(botMsg);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1000);
+        }
+
+        // Perfil tabs
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            contents.forEach((content, i) => {
+                if (i === index) {
+                    content.style.display = 'block';
+                } else {
+                    content.style.display = 'none';
+                }
+            });
+        }
+
+        // Favoritos
+        function toggleFavorite(btn) {
+            if (btn.textContent === '♡') {
+                btn.textContent = '♥';
+                btn.style.color = '#A4123F';
+            } else {
+                btn.textContent = '♡';
+                btn.style.color = '';
+            }
+        }
+
+        // Modal del test
+        function openTestModal() {
+            alert('Próximamente: Test personalizado para encontrar tu destino ideal 🎯');
+        }
+    </script>
+</body>
+</html>
