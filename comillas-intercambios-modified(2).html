@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comillas Intercambios - Tu próximo intercambio empieza aquí</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Firebase Configuration (will be initialized in script section) -->
+    
+    <style>
+        :root {
+            --comillas-yellow: #FFB81C;
+            --comillas-gray: #53565A;
+            --comillas-icai: #014593;
+            --comillas-icade: #A4123F;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --border-gray: #E0E0E0;
+            --text-dark: #1A1A1A;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* Navegación */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 2px 20px var(--shadow);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--comillas-yellow);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            color: var(--comillas-gray);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--comillas-gray);
+            font-weight: 500;
+            font-size: 0.95rem;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--comillas-yellow);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--comillas-yellow);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.active {
+            color: var(--comillas-yellow);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            height: 85vh;
+            background: linear-gradient(135deg, rgba(255, 184, 28, 0.95) 0%, rgba(83, 86, 90, 0.9) 100%),
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%2353565A" width="1200" height="800"/><circle cx="200" cy="150" r="80" fill="%23FFB81C" opacity="0.1"/><circle cx="900" cy="600" r="120" fill="%23FFB81C" opacity="0.1"/><circle cx="1100" cy="200" r="60" fill="%23014593" opacity="0.15"/><circle cx="300" cy="700" r="90" fill="%23A4123F" opacity="0.1"/></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 184, 28, 0.2) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        .hero-content {
+            max-width: 900px;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero p {
+            font-size: 1.4rem;
+            color: var(--white);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--comillas-yellow);
+            color: var(--comillas-gray);
+            box-shadow: 0 8px 25px rgba(255, 184, 28, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: #FFC94D;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 184, 28, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--comillas-gray);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-gray);
+            transform: translateY(-3px);
+        }
+
+        /* Sección de Estadísticas */
+        .stats {
+            background: var(--light-gray);
+            padding: 4rem 2rem;
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            background: var(--white);
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px var(--shadow);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--comillas-yellow);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--comillas-gray);
+            font-weight: 500;
+        }
+
+        /* Sección de Mapa */
+        .map-section {
+            padding: 5rem 2rem;
+            background: var(--white);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--comillas-gray);
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            color: var(--comillas-gray);
+            opacity: 0.8;
+        }
+
+        #map {
+            width: 100%;
+            height: 600px;
+            max-width: 1400px;
+            margin: 0 auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            overflow: hidden;
+        }
+
+        /* Sección de Experiencias */
+        .experiencias {
+            padding: 5rem 2rem;
+            background: var(--light-gray);
+        }
+
+        .experiencias-grid {
+            max-width: 1400px;
+            margin: 3rem auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .experiencia-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .experiencia-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .exp-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .exp-content {
+            padding: 2rem;
+        }
+
+        .exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .exp-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--comillas-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .exp-author {
+            font-size: 0.9rem;
+            color: var(--comillas-gray);
+            opacity: 0.7;
+        }
+
+        .exp-rating {
+            display: flex;
+            gap: 0.25rem;
+            font-size: 1.2rem;
+            color: var(--comillas-yellow);
+        }
+
+        .exp-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .tag {
+            background: var(--light-gray);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--comillas-gray);
+            font-weight: 500;
+        }
+
+        .exp-description {
+            color: var(--comillas-gray);
+            line-height: 1.6;
+            margin: 1rem 0;
+        }
+
+        .exp-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .exp-date {
+            font-size: 0.9rem;
+            color: var(--comillas-gray);
+            opacity: 0.7;
+        }
+
+        .btn-like {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-like:hover {
+            transform: scale(1.2);
+        }
+
+        /* Sección de Marketplace */
+        .marketplace {
+            padding: 5rem 2rem;
+            background: var(--white);
+        }
+
+        .marketplace-grid {
+            max-width: 1400px;
+            margin: 3rem auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: var(--white);
+            border: 2px solid var(--border-gray);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--comillas-yellow);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-content {
+            padding: 1.5rem;
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--comillas-gray);
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--comillas-yellow);
+        }
+
+        .product-description {
+            font-size: 0.9rem;
+            color: var(--comillas-gray);
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+
+        .product-seller {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .seller-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--comillas-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .seller-info {
+            flex: 1;
+        }
+
+        .seller-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--comillas-gray);
+        }
+
+        .seller-location {
+            font-size: 0.8rem;
+            color: var(--comillas-gray);
+            opacity: 0.7;
+        }
+
+        /* Sección de Red de Contactos */
+        .network {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, var(--comillas-icai) 0%, var(--comillas-icade) 100%);
+            color: var(--white);
+        }
+
+        .network .section-header h2,
+        .network .section-header p {
+            color: var(--white);
+        }
+
+        .network-grid {
+            max-width: 1400px;
+            margin: 3rem auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .contact-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .contact-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .contact-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: var(--comillas-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .contact-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-location {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .contact-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .btn-contact {
+            margin-top: 1.5rem;
+            background: var(--white);
+            color: var(--comillas-icai);
+            padding: 0.75rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-contact:hover {
+            background: var(--comillas-yellow);
+            color: var(--white);
+            transform: scale(1.05);
+        }
+
+        /* Sección de Perfil */
+        .profile {
+            padding: 5rem 2rem;
+            background: var(--light-gray);
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 3rem auto 0;
+            background: var(--white);
+            border-radius: 30px;
+            box-shadow: 0 10px 50px var(--shadow);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--comillas-yellow) 0%, #FFC94D 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--white);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--comillas-yellow);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--comillas-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-meta {
+            color: var(--comillas-gray);
+            opacity: 0.8;
+        }
+
+        .profile-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-gray);
+            padding: 0 2rem;
+        }
+
+        .tab {
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--comillas-gray);
+            opacity: 0.6;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            opacity: 1;
+            border-bottom-color: var(--comillas-yellow);
+        }
+
+        .profile-content {
+            padding: 3rem 2rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content:first-child {
+            display: block;
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Chat Widget */
+        .chat-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .chat-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--comillas-yellow);
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 5px 25px rgba(255, 184, 28, 0.4);
+            transition: all 0.3s;
+        }
+
+        .chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 35px rgba(255, 184, 28, 0.5);
+        }
+
+        .chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 380px;
+            height: 550px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+        }
+
+        .chat-window.open {
+            display: flex;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--comillas-yellow) 0%, #FFC94D 100%);
+            padding: 1.5rem;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            color: var(--comillas-gray);
+            font-size: 1.1rem;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--comillas-gray);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+        }
+
+        .message-bot {
+            background: var(--light-gray);
+            padding: 1rem;
+            border-radius: 15px 15px 15px 5px;
+            color: var(--comillas-gray);
+            line-height: 1.5;
+            max-width: 85%;
+        }
+
+        .message-user {
+            background: var(--comillas-yellow);
+            padding: 1rem;
+            border-radius: 15px 15px 5px 15px;
+            color: var(--comillas-gray);
+            line-height: 1.5;
+            max-width: 85%;
+            margin-left: auto;
+        }
+
+        .chat-suggestions {
+            padding: 0 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .suggestion-btn {
+            background: var(--light-gray);
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--comillas-gray);
+            transition: all 0.2s;
+        }
+
+        .suggestion-btn:hover {
+            background: var(--comillas-yellow);
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 1rem 1.5rem;
+            gap: 0.5rem;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border-gray);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .chat-send {
+            background: var(--comillas-yellow);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .chat-send:hover {
+            background: #FFC94D;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--comillas-gray);
+            color: var(--white);
+            padding: 3rem 2rem 1.5rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--comillas-yellow);
+        }
+
+        .footer-section p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .footer-section a {
+            display: block;
+            color: var(--white);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .footer-section a:hover {
+            opacity: 1;
+            color: var(--comillas-yellow);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .experiencias-grid,
+            .marketplace-grid,
+            .network-grid,
+            .favorites-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-window {
+                width: calc(100vw - 2rem);
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">Comillas <span>Intercambios</span></a>
+            <ul class="nav-links">
+                <li><a href="#inicio" class="active">Inicio</a></li>
+                <li><a href="#experiencias">Experiencias</a></li>
+                <li><a href="#marketplace">Marketplace</a></li>
+                <li><a href="#red">Red de Contactos</a></li>
+                <li><a href="#perfil">Mi Perfil</a></li>
+                <li><a href="#" id="logoutBtn" style="color: #A4123F; font-weight: 700;">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <h1>Tu próximo intercambio empieza aquí</h1>
+            <p>Conecta con estudiantes de Comillas alrededor del mundo. Comparte experiencias, encuentra alojamiento y descubre tu destino ideal.</p>
+            <div class="hero-buttons">
+                <a href="#experiencias" class="btn btn-primary">Explorar Destinos</a>
+                <a href="#" class="btn btn-secondary" onclick="openTestModal()">Hacer Test Personalizado</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number">150+</div>
+                <div class="stat-label">Destinos Disponibles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2,500+</div>
+                <div class="stat-label">Estudiantes Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Experiencias Compartidas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">98%</div>
+                <div class="stat-label">Satisfacción</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mapa Interactivo -->
+    <section class="map-section">
+        <div class="section-header">
+            <h2>Explora Universidades por el Mundo</h2>
+            <p>Descubre las universidades de intercambio de Comillas en más de 50 países</p>
+        </div>
+        <div id="map"></div>
+    </section>
+
+    <!-- Experiencias -->
+    <section class="experiencias" id="experiencias">
+        <div class="section-header">
+            <h2>Experiencias Reales</h2>
+            <p>Lee las historias de estudiantes que ya vivieron su intercambio</p>
+        </div>
+        <div class="experiencias-grid">
+            <div class="experiencia-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect fill='%23FFB81C' width='400' height='250'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23fff' font-family='sans-serif'%3EParis%3C/text%3E%3C/svg%3E" alt="París" class="exp-image">
+                <div class="exp-content">
+                    <div class="exp-header">
+                        <div>
+                            <h3 class="exp-title">Mi semestre en París</h3>
+                            <p class="exp-author">Por María González · ICADE</p>
+                        </div>
+                        <div class="exp-rating">⭐⭐⭐⭐⭐</div>
+                    </div>
+                    <div class="exp-tags">
+                        <span class="tag">🇫🇷 Francia</span>
+                        <span class="tag">💰 €800/mes</span>
+                        <span class="tag">📚 Derecho</span>
+                    </div>
+                    <p class="exp-description">
+                        Una experiencia inolvidable en la Sorbonne. La ciudad del amor se convirtió en mi segunda casa...
+                    </p>
+                    <div class="exp-footer">
+                        <span class="exp-date">Hace 2 semanas</span>
+                        <button class="btn-like" onclick="toggleFavorite(this)">♡</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="experiencia-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect fill='%23014593' width='400' height='250'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23fff' font-family='sans-serif'%3EBerlin%3C/text%3E%3C/svg%3E" alt="Berlín" class="exp-image">
+                <div class="exp-content">
+                    <div class="exp-header">
+                        <div>
+                            <h3 class="exp-title">Berlín: Ingeniería y Cultura</h3>
+                            <p class="exp-author">Por Carlos Martín · ICAI</p>
+                        </div>
+                        <div class="exp-rating">⭐⭐⭐⭐⭐</div>
+                    </div>
+                    <div class="exp-tags">
+                        <span class="tag">🇩🇪 Alemania</span>
+                        <span class="tag">💰 €650/mes</span>
+                        <span class="tag">🔧 Ingeniería</span>
+                    </div>
+                    <p class="exp-description">
+                        La TU Berlin superó mis expectativas. Laboratorios de primer nivel y una vida estudiantil increíble...
+                    </p>
+                    <div class="exp-footer">
+                        <span class="exp-date">Hace 1 mes</span>
+                        <button class="btn-like" onclick="toggleFavorite(this)">♡</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="experiencia-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect fill='%23A4123F' width='400' height='250'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23fff' font-family='sans-serif'%3ELisboa%3C/text%3E%3C/svg%3E" alt="Lisboa" class="exp-image">
+                <div class="exp-content">
+                    <div class="exp-header">
+                        <div>
+                            <h3 class="exp-title">Lisboa: Sol y Economía</h3>
+                            <p class="exp-author">Por Ana Rodríguez · Empresariales</p>
+                        </div>
+                        <div class="exp-rating">⭐⭐⭐⭐</div>
+                    </div>
+                    <div class="exp-tags">
+                        <span class="tag">🇵🇹 Portugal</span>
+                        <span class="tag">💰 €500/mes</span>
+                        <span class="tag">📊 Economía</span>
+                    </div>
+                    <p class="exp-description">
+                        El destino perfecto si buscas calidad-precio. Lisboa ofrece sol, playa y excelente universidad...
+                    </p>
+                    <div class="exp-footer">
+                        <span class="exp-date">Hace 3 semanas</span>
+                        <button class="btn-like" onclick="toggleFavorite(this)">♡</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marketplace -->
+    <section class="marketplace" id="marketplace">
+        <div class="section-header">
+            <h2>Marketplace</h2>
+            <p>Compra y vende artículos para tu intercambio</p>
+        </div>
+        <div class="marketplace-grid">
+            <div class="product-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23F5F5F5' width='400' height='200'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.3em' fill='%2353565A'%3E🛏️%3C/text%3E%3C/svg%3E" alt="Producto" class="product-image">
+                <div class="product-content">
+                    <div class="product-header">
+                        <div class="product-title">Cama individual IKEA</div>
+                        <div class="product-price">€80</div>
+                    </div>
+                    <p class="product-description">Cama en perfecto estado. Me vuelvo a España y necesito venderla rápido.</p>
+                    <div class="product-seller">
+                        <div class="seller-avatar">MG</div>
+                        <div class="seller-info">
+                            <div class="seller-name">María González</div>
+                            <div class="seller-location">📍 París, Francia</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23F5F5F5' width='400' height='200'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.3em' fill='%2353565A'%3E🚲%3C/text%3E%3C/svg%3E" alt="Producto" class="product-image">
+                <div class="product-content">
+                    <div class="product-header">
+                        <div class="product-title">Bicicleta de ciudad</div>
+                        <div class="product-price">€120</div>
+                    </div>
+                    <p class="product-description">Bici perfecta para moverse por Berlín. Con candado incluido.</p>
+                    <div class="product-seller">
+                        <div class="seller-avatar">CM</div>
+                        <div class="seller-info">
+                            <div class="seller-name">Carlos Martín</div>
+                            <div class="seller-location">📍 Berlín, Alemania</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23F5F5F5' width='400' height='200'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.3em' fill='%2353565A'%3E📚%3C/text%3E%3C/svg%3E" alt="Producto" class="product-image">
+                <div class="product-content">
+                    <div class="product-header">
+                        <div class="product-title">Libros de Derecho</div>
+                        <div class="product-price">€40</div>
+                    </div>
+                    <p class="product-description">Pack de 5 libros de Derecho Internacional. Como nuevos.</p>
+                    <div class="product-seller">
+                        <div class="seller-avatar">AR</div>
+                        <div class="seller-info">
+                            <div class="seller-name">Ana Rodríguez</div>
+                            <div class="seller-location">📍 Lisboa, Portugal</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23F5F5F5' width='400' height='200'/%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.3em' fill='%2353565A'%3E💻%3C/text%3E%3C/svg%3E" alt="Producto" class="product-image">
+                <div class="product-content">
+                    <div class="product-header">
+                        <div class="product-title">Monitor 24" Dell</div>
+                        <div class="product-price">€150</div>
+                    </div>
+                    <p class="product-description">Monitor Full HD perfecto para estudiar. 6 meses de uso.</p>
+                    <div class="product-seller">
+                        <div class="seller-avatar">JL</div>
+                        <div class="seller-info">
+                            <div class="seller-name">Jorge López</div>
+                            <div class="seller-location">📍 Ámsterdam, Países Bajos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Red de Contactos -->
+    <section class="network" id="red">
+        <div class="section-header">
+            <h2>Red de Contactos</h2>
+            <p>Conéctate con estudiantes en tu destino antes de llegar</p>
+        </div>
+        <div class="network-grid">
+            <div class="contact-card">
+                <div class="contact-avatar">MG</div>
+                <h3 class="contact-name">María González</h3>
+                <p class="contact-location">🇫🇷 París, Francia</p>
+                <p class="contact-info">Estudiante de Derecho en La Sorbonne. Me encanta la cocina francesa y explorar museos.</p>
+                <button class="btn-contact">Conectar</button>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-avatar">CM</div>
+                <h3 class="contact-name">Carlos Martín</h3>
+                <p class="contact-location">🇩🇪 Berlín, Alemania</p>
+                <p class="contact-info">Ingeniero en TU Berlin. Apasionado de la tecnología y la vida nocturna berlinesa.</p>
+                <button class="btn-contact">Conectar</button>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-avatar">AR</div>
+                <h3 class="contact-name">Ana Rodríguez</h3>
+                <p class="contact-location">🇵🇹 Lisboa, Portugal</p>
+                <p class="contact-info">Estudiante de Economía. Amante del surf y los pastéis de nata.</p>
+                <button class="btn-contact">Conectar</button>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-avatar">JL</div>
+                <h3 class="contact-name">Jorge López</h3>
+                <p class="contact-location">🇳🇱 Ámsterdam, Países Bajos</p>
+                <p class="contact-info">Business student. Cyclist enthusiast and coffee lover.</p>
+                <button class="btn-contact">Conectar</button>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-avatar">LS</div>
+                <h3 class="contact-name">Laura Sánchez</h3>
+                <p class="contact-location">🇬🇧 Londres, Reino Unido</p>
+                <p class="contact-info">International Relations at King's College. Theatre and art galleries fan.</p>
+                <button class="btn-contact">Conectar</button>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-avatar">PM</div>
+                <h3 class="contact-name">Pablo Moreno</h3>
+                <p class="contact-location">🇮🇹 Roma, Italia</p>
+                <p class="contact-info">Estudiante de Historia del Arte en La Sapienza. Pizza connoisseur.</p>
+                <button class="btn-contact">Conectar</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mi Perfil -->
+    <section class="profile" id="perfil">
+        <div class="section-header">
+            <h2>Mi Perfil</h2>
+            <p>Gestiona tu experiencia de intercambio</p>
+        </div>
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar">TU</div>
+                <h2 class="profile-name">Tu Nombre</h2>
+                <p class="profile-meta">ICADE · Derecho · 3º Curso</p>
+            </div>
+            <div class="profile-tabs">
+                <div class="tab active" onclick="switchTab(0)">Mis Favoritos</div>
+                <div class="tab" onclick="switchTab(1)">Mis Publicaciones</div>
+                <div class="tab" onclick="switchTab(2)">Mis Conexiones</div>
+            </div>
+            <div class="profile-content">
+                <div class="tab-content">
+                    <div class="favorites-grid">
+                        <div class="experiencia-card">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect fill='%23FFB81C' width='400' height='250'/%3E%3Ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%23fff' font-family='sans-serif'%3EParis%3C/text%3E%3C/svg%3E" alt="París" class="exp-image">
+                            <div class="exp-content">
+                                <h3 class="exp-title">Mi semestre en París</h3>
+                                <p class="exp-description">Una experiencia inolvidable...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content">
+                    <p style="text-align: center; color: var(--comillas-gray); opacity: 0.7;">
+                        Aún no has publicado ninguna experiencia. ¡Comparte tu historia!
+                    </p>
+                </div>
+                <div class="tab-content">
+                    <p style="text-align: center; color: var(--comillas-gray); opacity: 0.7;">
+                        Aún no tienes conexiones. ¡Empieza a conectar con otros estudiantes!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <button class="chat-toggle" onclick="toggleChat()">💬</button>
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <h3>🤖 Asistente de Intercambios</h3>
+                <button class="chat-close" onclick="toggleChat()">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message">
+                    <div class="message-bot">
+                        ¡Hola! 👋 Soy tu asistente de intercambios. Puedo ayudarte a encontrar el destino perfecto 
+                        según tus preferencias. ¿En qué puedo ayudarte?
+                    </div>
+                </div>
+            </div>
+            <div class="chat-suggestions">
+                <button class="suggestion-btn" onclick="sendMessage('¿Cuál es el destino más económico?')">
+                    💰 ¿Cuál es el destino más económico?
+                </button>
+                <button class="suggestion-btn" onclick="sendMessage('¿Qué destinos son mejores para ICADE?')">
+                    🎓 ¿Qué destinos son mejores para ICADE?
+                </button>
+                <button class="suggestion-btn" onclick="sendMessage('¿Cómo es la vida en París?')">
+                    🗼 ¿Cómo es la vida en París?
+                </button>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" placeholder="Escribe tu pregunta..." id="chatInput" 
+                       onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="chat-send" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Comillas Intercambios</h4>
+                <p>Plataforma oficial de intercambios de la Universidad Pontificia Comillas.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces</h4>
+                <a href="#inicio">Inicio</a>
+                <a href="#experiencias">Experiencias</a>
+                <a href="#marketplace">Marketplace</a>
+                <a href="#red">Red de Contactos</a>
+            </div>
+            <div class="footer-section">
+                <h4>Ayuda</h4>
+                <a href="#">Preguntas Frecuentes</a>
+                <a href="#">Contacto</a>
+                <a href="#">Términos y Condiciones</a>
+                <a href="#">Política de Privacidad</a>
+            </div>
+            <div class="footer-section">
+                <h4>Universidad</h4>
+                <a href="https://www.comillas.edu" target="_blank">comillas.edu</a>
+                <a href="#">Oficina de Relaciones Internacionales</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2025 Universidad Pontificia Comillas. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <script type="module">
+        // ============================================================================
+        // FIREBASE AUTHENTICATION - ADDED CODE
+        // ============================================================================
+        
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKkLEf-b6oVDWue0y8SOb83E-ZNRxc9m4",
+            authDomain: "intercambiocomillas.firebaseapp.com",
+            projectId: "intercambiocomillas",
+            storageBucket: "intercambiocomillas.firebasestorage.app",
+            messagingSenderId: "1063952274226",
+            appId: "1:1063952274226:web:1a45f50a6b0f4ed34ebd2b",
+            measurementId: "G-HH0106TMJ3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const analytics = getAnalytics(app);
+
+        // Check authentication state
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // User is not signed in, redirect to login
+                window.location.href = 'login.html';
+            } else {
+                // User is signed in, show user info
+                console.log('Usuario autenticado:', user.email);
+                
+                // Update profile section with user name
+                const profileName = document.querySelector('.profile-name');
+                if (profileName && user.displayName) {
+                    profileName.textContent = user.displayName;
+                }
+            }
+        });
+
+        // Logout functionality
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await signOut(auth);
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                    alert('Error al cerrar sesión');
+                }
+            });
+        }
+
+        // ============================================================================
+        // END FIREBASE AUTHENTICATION
+        // ============================================================================
+
+    </script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Active nav link
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= (sectionTop - 100)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // ============================================================================
+        // MAP SECTION - MODIFIED CODE STARTS HERE
+        // ============================================================================
+        
+        // Wait for DOM to be fully loaded before initializing map
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map centered on Europe
+            const map = L.map('map').setView([48.8566, 2.3522], 4);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // University markers data - ONE PIN PER CITY
+        // Coordinates are approximate city center locations
+        const universityDestinations = [
+            // GERMANY
+            { coords: [48.0006, 7.8449], name: 'Freiburg', university: 'Albert-Ludwigs-Universität-Freiburg', country: '🇩🇪 Alemania' },
+            { coords: [52.5200, 13.4050], name: 'Berlín', university: 'Technische Universität Berlin', country: '🇩🇪 Alemania' },
+            { coords: [48.5216, 9.0576], name: 'Tübingen', university: 'Eberhard-Karls-Universität Tübingen', country: '🇩🇪 Alemania' },
+            { coords: [50.9375, 6.9603], name: 'Colonia', university: 'Fachhochschule Köln', country: '🇩🇪 Alemania' },
+            { coords: [49.5731, 11.0278], name: 'Erlangen', university: 'Friedrich-Alexander Universität Erlangen-Nürnberg', country: '🇩🇪 Alemania' },
+            { coords: [51.5319, 9.9355], name: 'Göttingen', university: 'Georg-August-Universität Göttingen', country: '🇩🇪 Alemania' },
+            { coords: [52.3759, 9.7320], name: 'Hannover', university: 'Gottfried Wilhelm Leibniz Universität Hannover', country: '🇩🇪 Alemania' },
+            { coords: [51.3397, 12.3731], name: 'Leipzig', university: 'Handelshochschule Leipzig', country: '🇩🇪 Alemania' },
+            { coords: [48.1351, 11.5820], name: 'Múnich', university: 'Technische Universität München', country: '🇩🇪 Alemania' },
+            { coords: [48.7758, 9.1829], name: 'Stuttgart', university: 'Universität Stuttgart', country: '🇩🇪 Alemania' },
+            { coords: [49.4875, 8.4660], name: 'Mannheim', university: 'Universität Mannheim', country: '🇩🇪 Alemania' },
+            { coords: [49.0069, 8.4037], name: 'Karlsruhe', university: 'Karlsruhe Institute for Technology KIT', country: '🇩🇪 Alemania' },
+            { coords: [50.7753, 6.0839], name: 'Aachen', university: 'RWTH Aachen', country: '🇩🇪 Alemania' },
+            { coords: [49.3988, 8.6724], name: 'Heidelberg', university: 'Ruprecht-Karl-Universität Heidelberg', country: '🇩🇪 Alemania' },
+            { coords: [51.0504, 13.7373], name: 'Dresde', university: 'Technische Universität Dresden', country: '🇩🇪 Alemania' },
+            { coords: [48.3705, 10.8978], name: 'Augsburgo', university: 'Universität Augsburg', country: '🇩🇪 Alemania' },
+            { coords: [49.2401, 6.9969], name: 'Saarbrücken', university: 'Universität des Saarlandes', country: '🇩🇪 Alemania' },
+            { coords: [51.5136, 9.9450], name: 'Kassel', university: 'Universität Kassel', country: '🇩🇪 Alemania' },
+            { coords: [47.6779, 9.1732], name: 'Constanza', university: 'Universität Konstanz', country: '🇩🇪 Alemania' },
+            
+            // AUSTRIA
+            { coords: [47.0707, 15.4395], name: 'Graz', university: 'Karl-Franzens Universität Graz', country: '🇦🇹 Austria' },
+            { coords: [47.2692, 11.4041], name: 'Innsbruck', university: 'Leopold-Franzens-Universität Innsbruck', country: '🇦🇹 Austria' },
+            { coords: [48.2082, 16.3738], name: 'Viena', university: 'Universität Wien', country: '🇦🇹 Austria' },
+            
+            // BELGIUM
+            { coords: [50.8798, 4.7005], name: 'Lovaina', university: 'Katholieke Universiteit Leuven', country: '🇧🇪 Bélgica' },
+            { coords: [50.6292, 5.5797], name: 'Lieja', university: 'Université de Liège', country: '🇧🇪 Bélgica' },
+            { coords: [50.8503, 4.3517], name: 'Bruselas', university: 'Université Libre de Bruxelles', country: '🇧🇪 Bélgica' },
+            { coords: [51.0543, 3.7174], name: 'Gante', university: 'Universiteit Gent', country: '🇧🇪 Bélgica' },
+            
+            // DENMARK
+            { coords: [57.0488, 9.9217], name: 'Aalborg', university: 'Aalborg Universitet', country: '🇩🇰 Dinamarca' },
+            { coords: [55.6761, 12.5683], name: 'Copenhague', university: 'Copenhagen Business School', country: '🇩🇰 Dinamarca' },
+            { coords: [56.1629, 10.2039], name: 'Aarhus', university: 'University of Aarhus', country: '🇩🇰 Dinamarca' },
+            
+            // ESTONIA
+            { coords: [59.4370, 24.7536], name: 'Tallin', university: 'Tallinn University', country: '🇪🇪 Estonia' },
+            { coords: [58.3780, 26.7290], name: 'Tartu', university: 'University of Tartu', country: '🇪🇪 Estonia' },
+            
+            // FINLAND
+            { coords: [60.1699, 24.9384], name: 'Helsinki', university: 'Aalto University', country: '🇫🇮 Finlandia' },
+            { coords: [62.2426, 25.7473], name: 'Jyväskylä', university: 'JAMK University', country: '🇫🇮 Finlandia' },
+            { coords: [61.4978, 23.7610], name: 'Tampere', university: 'Tampere University of Technology', country: '🇫🇮 Finlandia' },
+            
+            // FRANCE
+            { coords: [48.8566, 2.3522], name: 'París', university: 'Sciences Po París', country: '🇫🇷 Francia' },
+            { coords: [45.7640, 4.8357], name: 'Lyon', university: 'École Centrale de Lyon', country: '🇫🇷 Francia' },
+            { coords: [43.2965, 5.3698], name: 'Marsella', university: 'École Centrale Marseille', country: '🇫🇷 Francia' },
+            { coords: [47.2184, -1.5536], name: 'Nantes', university: 'École Centrale de Nantes', country: '🇫🇷 Francia' },
+            { coords: [43.6047, 1.4442], name: 'Toulouse', university: 'Université de Toulouse I Capitole', country: '🇫🇷 Francia' },
+            { coords: [44.8378, -0.5792], name: 'Burdeos', university: 'Sciences Po Bordeaux', country: '🇫🇷 Francia' },
+            { coords: [48.5734, 7.7521], name: 'Estrasburgo', university: 'Université de Strasbourg', country: '🇫🇷 Francia' },
+            { coords: [50.6292, 3.0573], name: 'Lille', university: 'Université Catholique de Lille', country: '🇫🇷 Francia' },
+            { coords: [43.6108, 3.8767], name: 'Montpellier', university: 'Université de Montpellier', country: '🇫🇷 Francia' },
+            { coords: [45.1885, 5.7245], name: 'Grenoble', university: 'Grenoble École de Management', country: '🇫🇷 Francia' },
+            
+            // GREECE
+            { coords: [37.9838, 23.7275], name: 'Atenas', university: 'TEI Athens', country: '🇬🇷 Grecia' },
+            
+            // HUNGARY
+            { coords: [47.4979, 19.0402], name: 'Budapest', university: 'Budapest University of Technology', country: '🇭🇺 Hungría' },
+            
+            // IRELAND
+            { coords: [53.3498, -6.2603], name: 'Dublín', university: 'Dublin City University', country: '🇮🇪 Irlanda' },
+            { coords: [52.6638, -8.6267], name: 'Limerick', university: 'University of Limerick', country: '🇮🇪 Irlanda' },
+            
+            // ICELAND
+            { coords: [64.1466, -21.9426], name: 'Reikiavik', university: 'University of Iceland', country: '🇮🇸 Islandia' },
+            
+            // ITALY
+            { coords: [41.9028, 12.4964], name: 'Roma', university: 'LUISS Guido Carli', country: '🇮🇹 Italia' },
+            { coords: [45.4642, 9.1900], name: 'Milán', university: 'Politecnico di Milano', country: '🇮🇹 Italia' },
+            { coords: [44.4949, 11.3426], name: 'Bolonia', university: 'Università degli Studi di Bologna', country: '🇮🇹 Italia' },
+            { coords: [45.4064, 11.8768], name: 'Padua', university: 'Università degli Studi di Padova', country: '🇮🇹 Italia' },
+            { coords: [43.7228, 10.4017], name: 'Pisa', university: 'Università degli Studi di Pisa', country: '🇮🇹 Italia' },
+            { coords: [46.0748, 11.1217], name: 'Trento', university: 'Università degli Studi di Trento', country: '🇮🇹 Italia' },
+            { coords: [45.6495, 13.7768], name: 'Trieste', university: 'Università degli Studi di Trieste', country: '🇮🇹 Italia' },
+            
+            // NETHERLANDS
+            { coords: [52.0116, 4.3571], name: 'Delft', university: 'Delft University of Technology', country: '🇳🇱 Países Bajos' },
+            { coords: [52.3676, 4.9041], name: 'Ámsterdam', university: 'University of Amsterdam', country: '🇳🇱 Países Bajos' },
+            { coords: [51.9225, 4.4792], name: 'Róterdam', university: 'Rotterdam School of Management', country: '🇳🇱 Países Bajos' },
+            { coords: [51.4416, 5.4697], name: 'Eindhoven', university: 'Eindhoven University', country: '🇳🇱 Países Bajos' },
+            { coords: [51.8126, 5.8372], name: 'Nimega', university: 'Radboud University Nijmegen', country: '🇳🇱 Países Bajos' },
+            { coords: [51.5619, 5.0919], name: 'Tilburgo', university: 'Tilburg University', country: '🇳🇱 Países Bajos' },
+            { coords: [53.2194, 6.5665], name: 'Groninga', university: 'University of Groningen', country: '🇳🇱 Países Bajos' },
+            
+            // NORWAY
+            { coords: [59.9139, 10.7522], name: 'Oslo', university: 'Norwegian School of Management', country: '🇳🇴 Noruega' },
+            { coords: [63.4305, 10.3951], name: 'Trondheim', university: 'NTNU', country: '🇳🇴 Noruega' },
+            { coords: [60.3913, 5.3221], name: 'Bergen', university: 'University of Bergen', country: '🇳🇴 Noruega' },
+            
+            // POLAND
+            { coords: [50.0647, 19.9450], name: 'Cracovia', university: 'Cracow University of Technology', country: '🇵🇱 Polonia' },
+            { coords: [52.2297, 21.0122], name: 'Varsovia', university: 'Cardinal Stefan Wyszynski University', country: '🇵🇱 Polonia' },
+            { coords: [51.1079, 17.0385], name: 'Breslavia', university: 'Wroclaw University of Technology', country: '🇵🇱 Polonia' },
+            
+            // PORTUGAL
+            { coords: [38.7223, -9.1393], name: 'Lisboa', university: 'Universidade de Lisboa', country: '🇵🇹 Portugal' },
+            { coords: [40.2033, -8.4103], name: 'Coímbra', university: 'Universidade de Coimbra', country: '🇵🇹 Portugal' },
+            { coords: [41.1579, -8.6291], name: 'Oporto', university: 'Universidade do Porto', country: '🇵🇹 Portugal' },
+            { coords: [41.5454, -8.4265], name: 'Braga', university: 'Universidade do Minho', country: '🇵🇹 Portugal' },
+            
+            // UNITED KINGDOM
+            { coords: [51.5074, -0.1278], name: 'Londres', university: 'University College London', country: '🇬🇧 Reino Unido' },
+            { coords: [51.4545, -2.5879], name: 'Bristol', university: 'University of Bristol', country: '🇬🇧 Reino Unido' },
+            { coords: [55.9533, -3.1883], name: 'Edimburgo', university: 'University of Edinburgh', country: '🇬🇧 Reino Unido' },
+            { coords: [53.4808, -2.2426], name: 'Mánchester', university: 'Manchester Metropolitan University', country: '🇬🇧 Reino Unido' },
+            { coords: [52.6369, 1.2974], name: 'Norwich', university: 'University of East Anglia', country: '🇬🇧 Reino Unido' },
+            { coords: [53.3811, -1.4701], name: 'Sheffield', university: 'University of Sheffield', country: '🇬🇧 Reino Unido' },
+            { coords: [51.3811, -2.3590], name: 'Bath', university: 'University of Bath', country: '🇬🇧 Reino Unido' },
+            { coords: [52.4862, -1.8904], name: 'Birmingham', university: 'University of Birmingham', country: '🇬🇧 Reino Unido' },
+            { coords: [51.5246, -0.1340], name: 'Londres (King\'s)', university: 'King\'s College London', country: '🇬🇧 Reino Unido' },
+            { coords: [53.4084, -2.9916], name: 'Liverpool', university: 'University of Liverpool', country: '🇬🇧 Reino Unido' },
+            { coords: [51.4545, -2.5879], name: 'Cardiff', university: 'Cardiff University', country: '🇬🇧 Reino Unido' },
+            { coords: [50.7155, -3.5309], name: 'Exeter', university: 'University of Exeter', country: '🇬🇧 Reino Unido' },
+            
+            // CZECH REPUBLIC
+            { coords: [50.0755, 14.4378], name: 'Praga', university: 'Charles University Prague', country: '🇨🇿 República Checa' },
+            
+            // SWEDEN
+            { coords: [59.3293, 18.0686], name: 'Estocolmo', university: 'Stockholm School of Economics', country: '🇸🇪 Suecia' },
+            { coords: [57.7089, 11.9746], name: 'Gotemburgo', university: 'Göteborg Universitet', country: '🇸🇪 Suecia' },
+            { coords: [55.6050, 13.0038], name: 'Lund', university: 'Lunds Universitet', country: '🇸🇪 Suecia' },
+            
+            // SWITZERLAND
+            { coords: [46.5197, 6.6323], name: 'Lausana', university: 'EPFL', country: '🇨🇭 Suiza' },
+            { coords: [47.3769, 8.5417], name: 'Zúrich', university: 'ETH Zürich', country: '🇨🇭 Suiza' },
+            { coords: [46.2044, 6.1432], name: 'Ginebra', university: 'Université de Génève', country: '🇨🇭 Suiza' },
+            { coords: [46.9480, 7.4474], name: 'Berna', university: 'Universität Bern', country: '🇨🇭 Suiza' },
+            
+            // TURKEY
+            { coords: [41.0082, 28.9784], name: 'Estambul', university: 'Istanbul Technical University', country: '🇹🇷 Turquía' },
+            { coords: [39.9334, 32.8597], name: 'Ankara', university: 'Bilkent University', country: '🇹🇷 Turquía' },
+            
+            // AMERICAS
+            { coords: [-34.6037, -58.3816], name: 'Buenos Aires', university: 'Pontificia Universidad Católica Argentina', country: '🇦🇷 Argentina' },
+            { coords: [-22.9068, -43.1729], name: 'Río de Janeiro', university: 'PUC Rio', country: '🇧🇷 Brasil' },
+            { coords: [-23.5505, -46.6333], name: 'São Paulo', university: 'PUC São Paulo', country: '🇧🇷 Brasil' },
+            { coords: [4.7110, -74.0721], name: 'Bogotá', university: 'Pontificia Universidad Javeriana', country: '🇨🇴 Colombia' },
+            { coords: [-33.4489, -70.6693], name: 'Santiago', university: 'Pontificia Universidad Católica de Chile', country: '🇨🇱 Chile' },
+            { coords: [19.4326, -99.1332], name: 'Ciudad de México', university: 'ITESM', country: '🇲🇽 México' },
+            { coords: [-12.0464, -77.0428], name: 'Lima', university: 'Universidad del Pacífico', country: '🇵🇪 Perú' },
+            { coords: [42.3601, -71.0589], name: 'Boston', university: 'Boston College', country: '🇺🇸 Estados Unidos' },
+            { coords: [40.7128, -74.0060], name: 'Nueva York', university: 'Columbia University', country: '🇺🇸 Estados Unidos' },
+            { coords: [37.7749, -122.4194], name: 'San Francisco', university: 'University of San Francisco', country: '🇺🇸 Estados Unidos' },
+            { coords: [41.8781, -87.6298], name: 'Chicago', university: 'Loyola University Chicago', country: '🇺🇸 Estados Unidos' },
+            { coords: [38.9072, -77.0369], name: 'Washington DC', university: 'Georgetown University', country: '🇺🇸 Estados Unidos' },
+            { coords: [25.7617, -80.1918], name: 'Miami', university: 'University of Miami', country: '🇺🇸 Estados Unidos' },
+            
+            // ASIA
+            { coords: [39.9042, 116.4074], name: 'Pekín', university: 'Peking University', country: '🇨🇳 China' },
+            { coords: [31.2304, 121.4737], name: 'Shanghái', university: 'Jiao Tong University', country: '🇨🇳 China' },
+            { coords: [22.3193, 114.1694], name: 'Hong Kong', university: 'City University of Hong Kong', country: '🇭🇰 Hong Kong' },
+            { coords: [35.6762, 139.6503], name: 'Tokio', university: 'Waseda University', country: '🇯🇵 Japón' },
+            { coords: [37.5665, 126.9780], name: 'Seúl', university: 'Yonsei University', country: '🇰🇷 Corea del Sur' },
+            { coords: [1.3521, 103.8198], name: 'Singapur', university: 'Singapore Management University', country: '🇸🇬 Singapur' },
+            { coords: [25.0330, 121.5654], name: 'Taipéi', university: 'Fu Jen Catholic University', country: '🇹🇼 Taiwán' },
+            { coords: [14.5995, 120.9842], name: 'Manila', university: 'Ateneo de Manila University', country: '🇵🇭 Filipinas' },
+            
+            // OCEANIA
+            { coords: [-33.8688, 151.2093], name: 'Sídney', university: 'University of Sydney', country: '🇦🇺 Australia' },
+            { coords: [-37.8136, 144.9631], name: 'Melbourne', university: 'RMIT University', country: '🇦🇺 Australia' },
+        ];
+
+        // Add markers to map
+        universityDestinations.forEach(destination => {
+            const marker = L.marker(destination.coords).addTo(map);
+            
+            // Create popup content with university info
+            marker.bindPopup(`
+                <div style="font-family: 'DM Sans', sans-serif;">
+                    <strong style="color: #FFB81C; font-size: 1.1em;">${destination.name}</strong><br>
+                    <span style="color: #53565A; font-size: 0.9em;">${destination.country}</span><br>
+                    <span style="color: #53565A; margin-top: 5px; display: block;">${destination.university}</span>
+                </div>
+            `);
+        });
+
+        });
+
+        // ============================================================================
+        // MAP SECTION - MODIFIED CODE ENDS HERE
+        // ============================================================================
+
+        // Chat Bot
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.toggle('open');
+        }
+
+        function sendMessage(text) {
+            const input = document.getElementById('chatInput');
+            const messagesContainer = document.getElementById('chatMessages');
+            const message = text || input.value.trim();
+            
+            if (!message) return;
+
+            // Mensaje del usuario
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message';
+            userMsg.innerHTML = `<div class="message-user">${message}</div>`;
+            messagesContainer.appendChild(userMsg);
+
+            // Limpiar input
+            input.value = '';
+
+            // Scroll al final
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Respuesta del bot (simulada)
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'chat-message';
+                
+                let response = '';
+                if (message.includes('económico')) {
+                    response = 'Los destinos más económicos son Lisboa (€500/mes) y Berlín (€650/mes). Ambos tienen buena calidad de vida y muchas opciones para estudiantes.';
+                } else if (message.includes('ICADE')) {
+                    response = 'Para estudiantes de ICADE, los destinos más populares son París (Sorbonne), Berlín (Humboldt) y Londres (King\'s College). Todos tienen programas excelentes en Derecho y Empresariales.';
+                } else if (message.includes('París')) {
+                    response = 'París es una ciudad increíble pero cara. El alojamiento promedio es de €550/mes. Te recomiendo vivir en el Quartier Latin o cerca de la universidad. Hay 12 experiencias registradas que puedes consultar.';
+                } else {
+                    response = 'Esa es una gran pregunta. Te recomiendo revisar las experiencias de otros estudiantes o usar los filtros para encontrar el destino que mejor se adapte a tus necesidades. ¿En qué más puedo ayudarte?';
+                }
+                
+                botMsg.innerHTML = `<div class="message-bot">${response}</div>`;
+                messagesContainer.appendChild(botMsg);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1000);
+        }
+
+        // Perfil tabs
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            contents.forEach((content, i) => {
+                if (i === index) {
+                    content.style.display = 'block';
+                } else {
+                    content.style.display = 'none';
+                }
+            });
+        }
+
+        // Favoritos
+        function toggleFavorite(btn) {
+            if (btn.textContent === '♡') {
+                btn.textContent = '♥';
+                btn.style.color = '#A4123F';
+            } else {
+                btn.textContent = '♡';
+                btn.style.color = '';
+            }
+        }
+
+        // Modal del test
+        function openTestModal() {
+            alert('Próximamente: Test personalizado para encontrar tu destino ideal 🎯');
+        }
+    </script>
+</body>
+</html>
